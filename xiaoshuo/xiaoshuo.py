@@ -19,7 +19,7 @@ while True:
     # 设置编码
     respond.encoding = 'utf-8'    #支持中文显示
 
-    # 响应信息
+    # 响应信息，注：游览器要下载Xpath helper,才能复制想要寻找的Xpath路径
     e = etree.HTML(respond.text)
     info = '\n'.join(e.xpath('//div[@class="m-post"]/p/text()'))   #join的用法：''内的符号表示列表的元素间的间隔的样式，将列表元素组合成字符串
     title = e.xpath('//h1/text()')[0]
