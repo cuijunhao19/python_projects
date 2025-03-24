@@ -1,3 +1,6 @@
+# 目的：获取豆瓣top250的电影的相关信息
+# 获取豆瓣电影排行榜页面源代码，在源代码中找到想要的电影的相关信息 
+
 import requests
 import re
 import csv
