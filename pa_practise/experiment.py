@@ -1,26 +1,47 @@
+# 目的：利用多线程去快速获取多个网页的数据，注：该代码仅为思路示例，并不能完全成功爬取所有数据，
+# 因为该网页部分访问需要登陆，该代码仅为使用线程池的思路
+
 import requests
+from lxml import etree
+import csv
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
-url = "https://movie.douban.com/j/chart/top_list"
+f = open("huinogwang_datas.csv", mode='a', encoding='utf-8')
+csvwriter = csv.writer(f)
 
-#伪装游览器请求头
 headers = {
-    "user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0"
+    "user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0",
+    "cookie":"deviceId=5539da94-de80-430e-a02f-46ba4a848716; Hm_lvt_0e023fed85d2150e7d419b5b1f2e7c0f=1744120034; Hm_lvt_91cf34f62b9bedb16460ca36cf192f4c=1744284668,1744375620,1744452145,1744629798; HMACCOUNT=68C213D3BA5AA50E; Hm_lvt_b99541cbfb0edd202bb49abf3a0bef84=1744284667,1744375620,1744452145,1744629798; sessionId=S_0M9GZJG58Y1NW808; deviceId=42ce61f-cdbb-41f6-9d36-cc50af149; Hm_lpvt_b99541cbfb0edd202bb49abf3a0bef84=1744632007; Hm_lpvt_91cf34f62b9bedb16460ca36cf192f4c=1744632014; hnUserTicket=21a0e7f4-84b8-453c-9e6d-f4688711c4a1; hnUserId=214186754"
 }
 
+def one_page_data_download(url):
 
-#封装参数
-params = {
-    "type": "24",
-    "interval_id": "100:90",
-    "action":"" ,
-    "start": "0",
-    "limit": "20"
-}
+    resp = requests.get(url, headers=headers) 
+    page = resp.text
+    resp.close()
+
+    html = etree.HTML(page)
+
+    lis = html.xpath('//*[@id="__layout"]/div/div/div[2]/div[1]/div[3]/div/div[1]/div/div[1]/div[2]/ul/li')
+
+    for li in lis:
+        time = li.xpath('./a/span[1]/text()')[0]
+        name = li.xpath('./a/span[2]/text()')[0]
+        place = li.xpath('./a/span[3]/text()')[0]
+        price = li.xpath('./a/span[4]/text()')[0]
+        print("time:", time, "name:", name, "place:", place, "price:", price)
+        # text = li.xpath('./a/span/text()')
+        # text = (item.replace("\n", "").replace(" ", "").replace("-", "")for item in text)
+        # csvwriter.writerow(text)
+    print(url, "Over!\n")
 
 
-respond = requests.get(url=url, headers=headers, params=params)
+if __name__ == '__main__':
 
-print(respond.url)
-print(respond.status_code)
-#print(respond.json())
-respond.close()
+    for i in range(9, 12):
+        url = f"https://www.cnhnb.com/hangqing/cdlist-0-0-0-0-0-{i}/"
+        one_page_data_download(url)
+    # with ThreadPoolExecutor(50) as t:
+    #     for i in range(1, 200):
+    #         url = f"https://www.cnhnb.com/hangqing/cdlist-0-0-0-0-0-{i}/"
+    #         t.submit(one_page_data_download, url)
